@@ -1,0 +1,171 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{indentfirst}
+\usepackage{appendix}
+\usepackage{libertine}
+\usepackage{titlesec}
+\usepackage{eso-pic}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{color}
+\usepackage{setspace}
+\usepackage[T1]{fontenc}
+\usepackage[hyphens]{url}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex}
+\addbibresource{bibliography.bib}
+
+\usepackage{bm}
+\usepackage{enumitem}
+\usepackage{siunitx}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{cancel}
+\usepackage{pdflscape}
+\usepackage{svg}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{comment}
+\usepackage{placeins}
+\usepackage{listings}
+
+\usepackage[linkbordercolor=white]{hyperref}
+
+\lstset{literate=%
+    {à}{{\`a}}1 {â}{{\^a}}1 {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1 {î}{{\^i}}1 {ï}{{\"i}}1 {ô}{{\^o}}1 {ö}{{\"o}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1 {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1{―}{{\textemdash}}1
+    {’}{{'}}1 {‘}{{`}}1 {“}{{``}}1 {”}{{''}}1
+}
+\urlstyle{same}
+\pagestyle{fancy}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{}
+\renewcommand{\subsectionmark}[1]{}
+
+% Configuration de \subsubsubsection
+\titleclass{\subsubsubsection}{straight}[\subsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@subparagraph{6} % Correction du doublon ici
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\setlength{\headheight}{14.5pt}
+\setlength{\parskip}{1em}
+\renewcommand{\baselinestretch}{0.6}
+\renewcommand{\headrulewidth}{1pt}
+\newcommand{\HRule}{\rule{\linewidth}{0.3mm}}
+\newcommand\BackgroundPic{%
+        \put(0,0){%
+                \parbox[b][\paperheight]{\paperwidth}{%
+                        \vfill
+                        \centering
+                        \vfill}}}
+
+% -----------------------------------------------------
+
+\begin{document}
+\AddToShipoutPicture*{\BackgroundPic}
+\begin{titlepage}
+  \begin{sffamily}
+\noindent
+\begin{minipage}{0.32\textwidth}
+    \raggedright
+    \includegraphics[height=2.0cm]{faculty_logo.png}
+\end{minipage}%
+\begin{minipage}{0.32\textwidth}
+    \centering
+    \includegraphics[height=2.0cm]{science.png}
+\end{minipage}%
+\begin{minipage}{0.32\textwidth}
+    \raggedleft
+    \includegraphics[height=2.0cm]{bioscience.png}
+\end{minipage}
+\vspace*{5cm}
+
+  \begin{center}
+
+    % Title
+    \textsc{\huge C003698A - Design Project}\\[1cm]
+
+    \HRule \\[0.7cm]
+
+    \textsc{\Huge Exploring the value of omics data for individual cancer
+prognosis using multimodal AI} \\[0.4cm]
+
+    \HRule \\[1.2cm]
+
+    % Author and supervisor
+    \begin{minipage}{0.5\textwidth}
+    \begin{flushleft} \large
+    \emph{Author:}\\
+    Romain \textsc{Liefferinckx} - 02611641\\
+    Dane Marc Yap \textsc{Bagaoisan} - \\
+    Lotte \textsc{Bonte} - \\
+    Victoria \textsc{Likhacheva} - \\
+    \end{flushleft}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+    \begin{flushright} \large
+    \emph{Supervisors:} \\
+    Fiebe \textsc{Denijs}\\
+    Willem \textsc{Waegaman}\\
+    \end{flushright}
+    \end{minipage}
+
+    \vfill
+
+    % Faculty logo above academic year
+    \includegraphics[height=4.0cm]{logo_UGent.png}\\[1.0cm]
+
+    % Bottom of the page
+    {\large Academic year 2026-2027}
+
+  \end{center}
+
+  \end{sffamily}
+\end{titlepage}
+
+\clearpage
+
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------
+
+\section{Introduction}
+
+
+\section{Conclusion}
+
+\end{document}
