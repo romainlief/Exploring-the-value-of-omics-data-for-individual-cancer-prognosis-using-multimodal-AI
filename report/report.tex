@@ -15,6 +15,7 @@
 \usepackage{subcaption}
 \usepackage{color}
 \usepackage{setspace}
+\usepackage{multicol}
 \usepackage[T1]{fontenc}
 \usepackage[hyphens]{url}
 \usepackage[backend=bibtex,style=alphabetic]{biblatex}
@@ -162,18 +163,25 @@ prognosis using multimodal AI} \\[0.4cm]
 
 % -----------------------------------------------------
 \nocite{*}
-
+\begin{multicols}{2}
 \section*{Abstract}
 \addcontentsline{toc}{section}{Abstract}
-
+Predicting cancer progression and survival can support physicians in making decisions about patient
+care and treatment. Multimodal AI can improve these predictions by combining clinical information,
+imaging and molecular profiles. However, collecting additional data can be costly, and their value may
+differ between patients. A particular omics assay may improve predictions for one patient while
+providing redundant information for another. The goal of this project is to investigate whether
+uncertainty estimates can help determine when additional omics data are needed for an individual
+patient and which type would be most informative.
 \section{Introduction}
 
 \section{Conclusions}
 
+\newpage
 \printbibliography
-
+\newpage
 \section*{Appendix}
 \appendix
-
+\end{multicols}
 
 \end{document}
