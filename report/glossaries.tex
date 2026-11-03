@@ -3,4 +3,38 @@
   description={A continuous vector representation of discrete or continuous input features (e.g., image patches, textual tokens, omics features) projected into a shared metric space}
 }
 
-\newacronym{}{}{}
+\newglossaryentry{latent_bottleneck}{
+name={Latent Bottleneck},
+description={An architectural component that compresses high-dimensional input sequences into a fixed-size latent space (e.g., Perceiver architectures), decoupling computational complexity from input sequence length}
+}
+
+\newglossaryentry{self_attention}{
+name={Self-Attention},
+description={An attention mechanism computing contextual representations by allowing elements within the same sequence or latent space to interact dynamically}
+}
+
+\newglossaryentry{dynamic_attention_masking}{
+name={Dynamic Attention Masking},
+description={A technique for handling missing data by assigning a large negative bias ($-\infty$) pre-softmax to unobserved tokens, preventing unobserved modalities from affecting latent representations}
+}
+
+\newglossaryentry{inductive_bias}{
+name={Inductive Bias},
+description={The set of explicit assumptions incorporated into a learning algorithm or architecture (e.g., translation invariance in CNNs) to prioritize certain solutions and enhance generalization}
+}
+
+\newglossaryentry{tensor_fusion}{
+name={Tensor Fusion},
+description={A multidimensional aggregation technique (often based on outer products) that explicitly models unimodal, bimodal, and trimodal interactions across intermediate feature representations}
+}
+
+\newglossaryentry{moe_acronym}{
+name={moe},
+description={A Multimodal Mixture of Experts is a dynamic neural network architecture featuring multiple specialized subnetworks (experts) and a gating router that selectively directs inputs to a subset of experts}
+}
+
+\newglossaryentry{conditional_computation}{
+name={Conditional Computation},
+description={A paradigm where specific parts of the network architecture are activated on a per-sample basis, enabling sublinear scaling of compute relative to parameter count}
+}
+

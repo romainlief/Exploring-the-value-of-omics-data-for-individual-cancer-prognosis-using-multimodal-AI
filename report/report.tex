@@ -191,18 +191,18 @@ end-to-end architecture by projecting all modalities such as image patches, clin
 and omics profiles into a shared sequence of \glspl{token_embedding}. 
 While naive token concatenation often incurs a prohibitive quadratic computational complexity 
 ($\mathcal{O}(N^2)$) relative to the combined sequence length, 
-architectures utilizing latent bottlenecks (such as Perceiver or Perceiver IO) 
+architectures utilizing \glspl{latent_bottleneck} (such as Perceiver or Perceiver IO) 
 mitigate this challenge. They employ cross attention mechanisms to map high dimensional input sequences into a fixed size latent space, 
-where deep self attention blocks perform unified cross modal reasoning. 
-Missing modalities or missing clinical features are natively handled via dynamic attention masking: tokens corresponding to unobserved data are assigned a large negative bias 
+where deep \gls{self_attention} blocks perform unified cross modal reasoning. 
+Missing modalities or missing clinical features are natively handled via \gls{dynamic_attention_masking}: tokens corresponding to unobserved data are assigned a large negative bias 
 ($-\infty$ pre softmax), preventing unobserved modalities from altering the latent representations while preserving a constant parameter layout.
 
 \subsection{Intermediate Fusion (Feature Level Fusion)}
 Intermediate Fusion bridges early and late approaches by processing each modality through domain dedicated feature extractors 
 (encoders) to yield high level latent representations. 
 These representations are subsequently merged within the intermediate layers of the network using dedicated interaction mechanisms, 
-such as cross attention or tensor fusion. 
-This paradigm strikes a balance by preserving domain specific inductive biases while enabling deep, 
+such as cross attention or \gls{tensor_fusion}. 
+This paradigm strikes a balance by preserving domain specific \glspl{inductive_bias} while enabling deep, 
 nonlinear interactions across modalities. 
 Missing data is typically managed by substituting empty feature embeddings combined with binary presence indicator masks, 
 allowing the intermediate fusion modules to dynamically adapt to incomplete observations.
@@ -221,16 +221,26 @@ restricting its capacity to capture complex inter modality dependencies.
 
 \subsection{Multimodal Mixture of Experts}
 The Multimodal Mixture of Experts 
-(MoE) architecture utilizes a dynamic routing mechanism to direct incoming data streams toward specialized subnetworks 
+(\gls{moe_acronym}) architecture utilizes a dynamic routing mechanism to direct incoming data streams toward specialized subnetworks 
 ("experts") conditioned on the input modalities present. Instead of activating all parameters for every sample, 
 the gating network evaluates the available data and selectively assigns computation to the most relevant domain experts. 
 In scenarios involving incomplete observations, 
 the router bypasses nonviable execution paths, ensuring that missing modalities do not trigger inactive expert networks. 
-This conditional computation paradigm achieves sublinear scaling with respect to model parameters, 
+This \gls{conditional_computation} paradigm achieves sublinear scaling with respect to model parameters, 
 balancing domain specific precision with flexible multisource integration.
 
-\section{Conclusions}
 
+\subsection{Comparative Analysis Summary}
+As we can see in the Table~\ref{tab:multimodal_strategies}
+\begin{itemize}
+  \item Static vs. Dynamic Placement: Traditional structural paradigms (Early, Intermediate, Late, and Hybrid) dictate where information flows and merges. Early and Late approaches represent polar opposites (maximum raw combination versus complete segregation), whereas Intermediate and Hybrid approaches successfully capture non-linear inter-modality dependencies while preserving domain-specific feature extractors (such as convolutional encoders for imaging).
+  \item Computational Routing: In contrast to fixed structural placements, the Mixture of Experts (\gls{moe_acronym}) paradigm introduces conditional computation. By deploying a gating router, \gls{moe_acronym} scales model capacity sub-linearly and optimizes resource allocation per sample.
+  \item Robustness to Incomplete Data: While Early Fusion struggles with missing parameters due to strict input dimension requirements, Late, Intermediate, and \gls{moe_acronym} strategies handle missing observations natively or via masking. In clinical settings where patient panels are frequently incomplete, Hybrid or \gls{moe_acronym} architectures combined with attention masking offer the most practical path forward.
+\end{itemize}
+
+
+
+\section{Conclusions}
 
 \newpage
 \glsaddall
@@ -238,8 +248,24 @@ balancing domain specific precision with flexible multisource integration.
 
 \newpage
 \printbibliography
-\newpage
-\section*{Appendix}
-\appendix
+\clearpage
 \end{multicols}
+\onecolumn
+\appendix
+\section*{Appendix}
+\begin{table}[htbp]
+\centering
+\caption{Comparison of Multimodal Integration Paradigms and Missing Data Handling}
+\label{tab:multimodal_strategies}
+\begin{tabular}{p{3.0cm} p{3.2cm} p{3.5cm} p{3.8cm} p{2.2cm}}
+\hline
+\textbf{Strategy} & \textbf{Fusion Stage} & \textbf{Cross-Modal Interaction} & \textbf{Missing Data Handling} & \textbf{Primary Limitation} \\ \hline
+\textbf{Early Fusion} & Raw input level & Monolithic processing of concatenated inputs & Rigid: requires synthetic zero-filling / imputation & Poor handling of structural disparities \\
+\textbf{Intermediate Fusion} & Intermediate latent layers & Deep non-linear interaction via attention/tensors & Flexible: uses zero-embeddings + presence masks & Complex architectural design \\
+\textbf{Late Fusion} & Final decision level & None during representation learning & Trivial: simply omits missing modality pipelines & Misses inter-modal feature dependencies \\
+\textbf{Hybrid Fusion} & Multi-stage (Combined) & Tailored per modality group (Intermediate + Late) & Flexible: combines masking and routing strategies & High architectural complexity \\
+\textbf{Mixture of Experts (\gls{moe_acronym})} & Dynamic routing layer & Selective conditioning via gating networks & Native: router bypasses missing expert branches & Training instability and routing overhead \\
+\hline
+\end{tabular}
+\end{table}
 \end{document}
