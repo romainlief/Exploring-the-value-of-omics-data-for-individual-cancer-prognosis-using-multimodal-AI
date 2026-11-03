@@ -36,8 +36,10 @@
 \usepackage{comment}
 \usepackage{placeins}
 \usepackage{listings}
-
 \usepackage[linkbordercolor=white]{hyperref}
+\usepackage{glossaries}
+\makeglossaries
+\loadglsentries{glossaries.tex}
 
 \lstset{literate=%
     {à}{{\`a}}1 {â}{{\^a}}1 {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1 {î}{{\^i}}1 {ï}{{\"i}}1 {ô}{{\^o}}1 {ö}{{\"o}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1 {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1{―}{{\textemdash}}1
@@ -177,7 +179,62 @@ uncertainty estimates can help determine when additional omics data are needed f
 patient and which type would be most informative.
 \section{Introduction}
 
+\section{Data}
+
+\section{Uncertainty Estimation}
+
+\section{Methods for deep learning with multimodal data}
+
+\subsection{Early Fusion (Data Level Fusion)}
+Unified Multimodal Transformers process heterogeneous inputs within a single, 
+end-to-end architecture by projecting all modalities such as image patches, clinical narratives, 
+and omics profiles into a shared sequence of \glspl{token_embedding}. 
+While naive token concatenation often incurs a prohibitive quadratic computational complexity 
+($\mathcal{O}(N^2)$) relative to the combined sequence length, 
+architectures utilizing latent bottlenecks (such as Perceiver or Perceiver IO) 
+mitigate this challenge. They employ cross attention mechanisms to map high dimensional input sequences into a fixed size latent space, 
+where deep self attention blocks perform unified cross modal reasoning. 
+Missing modalities or missing clinical features are natively handled via dynamic attention masking: tokens corresponding to unobserved data are assigned a large negative bias 
+($-\infty$ pre softmax), preventing unobserved modalities from altering the latent representations while preserving a constant parameter layout.
+
+\subsection{Intermediate Fusion (Feature Level Fusion)}
+Intermediate Fusion bridges early and late approaches by processing each modality through domain dedicated feature extractors 
+(encoders) to yield high level latent representations. 
+These representations are subsequently merged within the intermediate layers of the network using dedicated interaction mechanisms, 
+such as cross attention or tensor fusion. 
+This paradigm strikes a balance by preserving domain specific inductive biases while enabling deep, 
+nonlinear interactions across modalities. 
+Missing data is typically managed by substituting empty feature embeddings combined with binary presence indicator masks, 
+allowing the intermediate fusion modules to dynamically adapt to incomplete observations.
+
+\subsection{Late Fusion (Decision Level Fusion)}
+Late Fusion operates by processing each modality through an independent, 
+domain specific expert model up to the point of final inference. 
+Predictions from these individual models 
+(e.g., class probabilities or risk scores) 
+are subsequently aggregated at the decision level using strategies such as weighted averaging, 
+voting, or meta classification. 
+Because features are never directly mixed, 
+this paradigm accommodates missing data naturally: if a modality is unavailable for a given sample, its corresponding expert pipeline is simply omitted from the final aggregation. 
+However, the principal limitation of Late Fusion lies in its inability to model cross modal feature interactions during representation learning, 
+restricting its capacity to capture complex inter modality dependencies.
+
+\subsection{Multimodal Mixture of Experts}
+The Multimodal Mixture of Experts 
+(MoE) architecture utilizes a dynamic routing mechanism to direct incoming data streams toward specialized subnetworks 
+("experts") conditioned on the input modalities present. Instead of activating all parameters for every sample, 
+the gating network evaluates the available data and selectively assigns computation to the most relevant domain experts. 
+In scenarios involving incomplete observations, 
+the router bypasses nonviable execution paths, ensuring that missing modalities do not trigger inactive expert networks. 
+This conditional computation paradigm achieves sublinear scaling with respect to model parameters, 
+balancing domain specific precision with flexible multisource integration.
+
 \section{Conclusions}
+
+
+\newpage
+\glsaddall
+\printglossaries
 
 \newpage
 \printbibliography
@@ -185,5 +242,4 @@ patient and which type would be most informative.
 \section*{Appendix}
 \appendix
 \end{multicols}
-
 \end{document}
