@@ -272,7 +272,7 @@ suggesting limited confidence in the model's knowledge for that particular input
 Conversely, a low variance indicates that the different models produce similar predictions.
 
 \subsection{Total Predictive Uncertainty}
-Both sources of uncertainty can be combined to obtain the total predictive variance. This decomposition follows from the *law of total variance*, which separates the expected variance within individual models from the variance between their predictions.
+Both sources of uncertainty can be combined to obtain the total predictive variance. This decomposition follows from the law of total variance, which separates the expected variance within individual models from the variance between their predictions.
 
 For a Deep Ensemble, the first component corresponds to the average aleatoric variance predicted by the individual networks, while the second captures the disagreement between their predicted means. The total predictive variance is therefore expressed as:
 
@@ -303,8 +303,227 @@ Separating these contributions is particularly useful in safety-critical applica
 such as medical imaging, where it helps distinguish inherently ambiguous observations 
 from predictions that may require additional training data or model refinement.
 
-\section{Methods for deep learning with multimodal data}
+\section{Transformer Architecture and Attention Mechanisms}
+\subsection{Input Representation and Embeddings}
+Transformers process input data as sequences of numerical representations called tokens. 
+Since neural networks cannot directly operate on raw textual, visual, 
+or biological data, these inputs must first be converted into vector representations called embeddings.
+For textual data, a tokenizer first divides the input into smaller units, 
+such as words, subwords, or individual characters. 
+Each token is then mapped to a numerical vector through an embedding matrix:
 
+\begin{equation}
+E \in \mathbb{R}^{V \times d_{\text{model}}},
+\end{equation}
+
+where \(V\) denotes the vocabulary size and \(d_{\text{model}}\) represents the embedding dimension. 
+The resulting vectors provide an initial numerical representation of the input tokens.
+For other modalities, 
+the tokenization process differs. In Vision Transformers (ViT), 
+for example, an image is divided into fixed-size patches, 
+which are subsequently flattened and projected into the same embedding space. 
+Similarly, biological sequences can be represented using individual nucleotides, 
+amino acids, or groups of consecutive elements (k-mers).
+However, embeddings alone do not necessarily encode the positional information of each token. 
+Unlike recurrent neural networks, Transformers do not inherently process tokens in sequential order. 
+Positional information must therefore be explicitly incorporated into the input representations.
+This is achieved through positional encoding, 
+which provides information about the position of each token in the sequence. 
+The initial representation is obtained by combining the token embedding with its corresponding positional encoding:
+
+\begin{equation}
+z_i = e_i + p_i,
+\end{equation}
+
+where \(e_i\) denotes the token embedding and \(p_i\) represents its positional encoding.
+In the original Transformer architecture, positional information is introduced using sinusoidal functions. 
+Other approaches, including learned positional embeddings and Rotary Positional Embeddings (RoPE), 
+are also commonly used in modern architectures.
+
+\subsection{Self-Attention Mechanism}
+The central component of the Transformer architecture is the self-attention mechanism, 
+which allows each token to incorporate information from other tokens within the same sequence. 
+Rather than processing elements independently, 
+the model learns relationships between them and produces context-dependent representations.
+Given an input representation matrix \(X\), three matrices are obtained through learned linear projections:
+
+\begin{equation}
+Q = XW_Q,\qquad
+\end{equation}
+\begin{equation}
+K = XW_K,\qquad
+\end{equation}
+\begin{equation}
+V = XW_V,\qquad
+\end{equation}
+
+
+where \(Q\), \(K\), and \(V\) represent the Query, Key, and Value matrices, respectively. 
+The projection matrices \(W_Q\), \(W_K\), and \(W_V\) contain trainable parameters.
+Queries represent the information each token is searching for, 
+while Keys determine how relevant each token is to a given Query. 
+Values contain the information that is subsequently aggregated to construct the output representations.
+The compatibility between Queries and Keys is computed using a scaled dot product:
+
+\begin{equation}
+S = \frac{QK^T}{\sqrt{d_k}},
+\end{equation}
+
+where \(d_k\) denotes the dimensionality of the Key vectors. 
+The scaling factor prevents excessively large attention scores, which could lead to small gradients during optimization.
+The resulting scores are normalized using the Softmax function to obtain attention weights. 
+These weights determine the relative contribution of each Value to the output:
+
+\begin{equation}
+\operatorname{Attention}(Q,K,V)
+=
+\operatorname{softmax}
+\left(
+\frac{QK^T}{\sqrt{d_k}}
+\right)V.
+\end{equation}
+
+Consequently, each token receives a weighted combination of information from the other tokens, 
+allowing its representation to incorporate relevant contextual information.
+
+\subsection{Multi-Head Attention}
+Instead of computing attention using a single set of projections, 
+Transformers employ Multi-Head Attention, which performs several attention operations in parallel. 
+Each attention head uses independent projection matrices and can therefore learn different relationships between tokens.
+The output of each head is defined as:
+
+\begin{equation}
+\operatorname{head}_j =
+\operatorname{Attention}
+\left(
+QW_Q^j,KW_K^j,VW_V^j
+\right).
+\end{equation}
+
+The outputs of all attention heads are concatenated and passed through a final linear projection:
+
+\begin{equation}
+\operatorname{MultiHead}(Q,K,V)
+=
+\operatorname{Concat}
+(\operatorname{head}_1,\ldots,\operatorname{head}_h)W_O,
+\end{equation}
+
+where \(h\) denotes the number of attention heads and \(W_O\) is a learned output projection.
+This mechanism enables the model to capture multiple types of relationships simultaneously, 
+such as syntactic, semantic, or long-range dependencies between tokens.
+
+\subsection{Attention Masks}
+An important aspect of Transformer architectures is the ability to control which tokens can interact during the attention computation. 
+This is achieved through attention masks, which modify the attention scores before the Softmax operation.
+The masked attention mechanism can be expressed as:
+
+\begin{equation}
+\operatorname{Attention}(Q,K,V)
+=
+\operatorname{softmax}
+\left(
+\frac{QK^T}{\sqrt{d_k}}+M
+\right)V,
+\end{equation}
+
+where \(M\) represents an additive attention mask. 
+Positions corresponding to prohibited interactions are assigned a value of \(-\infty\), 
+resulting in zero attention weights after the Softmax operation.
+Several masking strategies are commonly used, depending on the architecture and the intended information flow.
+
+\subsection{Transformer Block Architecture}
+A Transformer block combines Multi-Head Attention with a position-wise Feed-Forward Network (FFN). 
+While attention allows information to be exchanged between tokens, 
+the FFN independently transforms each token representation through a series of learned linear transformations and nonlinear activation functions.
+A conventional FFN is defined as:
+
+\begin{equation}
+\operatorname{FFN}(x)
+=
+W_2\operatorname{ReLU}(W_1x+b_1)+b_2.
+\end{equation}
+
+The intermediate representation is typically projected into a higher-dimensional space before being transformed back to the original embedding dimension.
+Furthermore, Transformer blocks incorporate residual connections and Layer Normalization to facilitate optimization and stabilize the training process. In a conventional post-normalization architecture, these operations can be expressed as:
+
+\begin{equation}
+H =
+\operatorname{LayerNorm}
+\left(
+X+\operatorname{MultiHead}(X)
+\right),
+\end{equation}
+
+\begin{equation}
+Z =
+\operatorname{LayerNorm}
+\left(
+H+\operatorname{FFN}(H)
+\right).
+\end{equation}
+
+Residual connections preserve information from previous layers and facilitate gradient propagation, 
+while Layer Normalization stabilizes the intermediate representations.
+By stacking multiple Transformer blocks, 
+the model progressively learns increasingly complex and contextualized representations of the input sequence.
+
+\subsection{Multimodal Transformers and Cross-Attention}
+The Transformer architecture can also be extended to process multiple data modalities simultaneously, 
+including medical images, clinical information, and omics profiles. 
+Such architectures are particularly relevant when combining heterogeneous sources of information for predictive tasks.
+Since different modalities initially have different data structures and feature dimensions, 
+they must first be projected into a compatible embedding space. 
+Each modality can then be represented as a sequence of tokens:
+
+\begin{equation}
+X_m \in \mathbb{R}^{N_m \times d_{\text{model}}},
+\end{equation}
+
+where \(N_m\) denotes the number of tokens associated with modality \(m\).
+In an early fusion approach, 
+the resulting representations are concatenated into a unified sequence:
+
+\begin{equation}
+X_{\text{multimodal}}
+=
+[X_1;X_2;\ldots;X_M],
+\end{equation}
+
+where \(M\) represents the number of modalities. 
+Self-attention can then capture relationships both within individual modalities and across different modalities.
+Another approach is Cross-Attention, which explicitly models interactions between two different sequences. 
+In this case, Queries are obtained from one modality, 
+while Keys and Values originate from another:
+
+\begin{equation}
+Q = X_aW_Q,\qquad
+K = X_bW_K,\qquad
+V = X_bW_V.
+\end{equation}
+
+The resulting attention operation is:
+
+\begin{equation}
+\operatorname{CrossAttention}(X_a,X_b)
+=
+\operatorname{softmax}
+\left(
+\frac{QK^T}{\sqrt{d_k}}
+\right)V.
+\end{equation}
+
+This allows one modality to selectively extract relevant information from another. 
+For example, clinical representations can attend to image-derived features to identify visual 
+information relevant to a particular clinical observation.
+Finally, attention masks can be extended to multimodal settings to control interactions between different modalities. 
+Depending on the architecture, these masks can restrict specific cross-modal interactions, 
+exclude missing or invalid tokens, or dynamically adapt the attention pattern to the available information.
+Such mechanisms provide greater control over information exchange and are particularly useful 
+when dealing with heterogeneous datasets containing missing modalities or varying amounts of information across samples.
+
+
+\section{Methods for deep learning with multimodal data}
 \subsection{Early Fusion (Data Level Fusion)}
 Unified Multimodal Transformers process heterogeneous inputs within a single, 
 end-to-end architecture by projecting all modalities such as image patches, clinical narratives, 
@@ -357,8 +576,6 @@ As we can see in the Table~\ref{tab:multimodal_strategies}
   \item \textbf{Computational Routing:} In contrast to fixed structural placements, the Mixture of Experts (\gls{moe_acronym}) paradigm introduces conditional computation. By deploying a gating router, \gls{moe_acronym} scales model capacity sub-linearly and optimizes resource allocation per sample.
   \item \textbf{Robustness to Incomplete Data:} While Early Fusion struggles with missing parameters due to strict input dimension requirements, Late, Intermediate, and \gls{moe_acronym} strategies handle missing observations natively or via masking. In clinical settings where patient panels are frequently incomplete, Hybrid or \gls{moe_acronym} architectures combined with attention masking offer the most practical path forward.
 \end{itemize}
-
-
 
 \section{Conclusions}
 
