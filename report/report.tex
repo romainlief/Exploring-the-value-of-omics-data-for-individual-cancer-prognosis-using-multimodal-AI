@@ -558,6 +558,22 @@ this paradigm accommodates missing data naturally: if a modality is unavailable 
 However, the principal limitation of Late Fusion lies in its inability to model cross modal feature interactions during representation learning, 
 restricting its capacity to capture complex inter modality dependencies.
 
+\subsection{Hybrid Fusion}
+Hybrid Fusion combines two or more fusion strategies within a single multimodal architecture, 
+allowing information to be integrated at different stages of the learning process. 
+Instead of relying exclusively on early, 
+intermediate, or late fusion, this approach combines their complementary advantages. 
+For example, modality-specific encoders can first extract independent feature representations, 
+which are then integrated through intermediate fusion mechanisms such as feature concatenation or cross-attention. 
+The resulting joint representation can subsequently be combined with predictions from independent 
+modality-specific branches through a final decision-level fusion. 
+This multi-level integration enables the model to capture cross-modal interactions while 
+preserving modality-specific information and independent predictive capabilities. 
+However, hybrid architectures generally introduce greater architectural complexity, 
+computational costs, and optimization challenges. 
+Their ability to handle missing modalities also depends on the design of the individual 
+fusion stages and the mechanisms implemented to accommodate incomplete observations.
+
 \subsection{Multimodal Mixture of Experts}
 The Multimodal Mixture of Experts 
 (\gls{moe_acronym}) architecture utilizes a dynamic routing mechanism to direct incoming data streams toward specialized subnetworks 
