@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
@@ -83,7 +83,6 @@
 \setcounter{tocdepth}{4}
 
 \setlength{\headheight}{14.5pt}
-\setlength{\parskip}{1em}
 \renewcommand{\baselinestretch}{0.6}
 \renewcommand{\headrulewidth}{1pt}
 \newcommand{\HRule}{\rule{\linewidth}{0.3mm}}
@@ -181,7 +180,128 @@ patient and which type would be most informative.
 
 \section{Data}
 
-\section{Uncertainty Estimation}
+\section{Quantification of Predictive Uncertainty}
+Predictive uncertainty in neural networks can be decomposed into two complementary sources: 
+aleatoric uncertainty and epistemic uncertainty. 
+These components describe different limitations of a model and provide complementary information about the reliability of its predictions \cite{hullermeier2021aleatoric}.
+
+\subsection{Aleatoric Uncertainty}
+Aleatoric uncertainty represents the intrinsic noise and variability in the observations. It is often heteroscedastic, 
+meaning that the uncertainty varies depending on the input rather than remaining constant across all predictions.
+To model this input-dependent uncertainty, 
+each neural network is designed to predict both a conditional mean \(\hat{y}_k(x)\) and a conditional variance \(\sigma^2_{\text{aleat},k}(x)\). 
+Assuming a Gaussian observation model:
+
+\begin{equation}
+y \mid x,\theta_k \sim
+\mathcal{N}\left(
+\hat{y}_k(x),
+\sigma^2_{\text{aleat},k}(x)
+\right),
+\end{equation}
+
+the network parameters \(\theta_k\) are optimized by minimizing the negative log-likelihood:
+
+\begin{equation}
+\mathcal{L}_{\text{aleat}}(\theta_k)
+=
+\frac{1}{2N}
+\sum_{i=1}^{N}
+\left[
+\frac{(y_i-\hat{y}_k(x_i))^2}
+{\sigma^2_{\text{aleat},k}(x_i)}
++
+\ln \sigma^2_{\text{aleat},k}(x_i)
+\right].
+\end{equation}
+
+The first term measures the squared prediction error, weighted by the inverse of the predicted variance. 
+Consequently, errors associated with high uncertainty are penalized less strongly, 
+whereas errors associated with low uncertainty receive a larger penalty.
+
+The second term, \(\ln \sigma^2_{\text{aleat},k}(x_i)\), penalizes excessively large variance estimates. 
+Without this term, the network could trivially minimize the loss by predicting arbitrarily high uncertainty for every input.
+
+When using a Deep Ensemble, each of the \(K\) independently trained networks produces its own variance estimate for a given input \(x\). 
+The overall aleatoric uncertainty is therefore obtained by averaging these estimates:
+
+\begin{equation}
+\sigma^2_{\text{aleat}}(x)
+=
+\frac{1}{K}
+\sum_{k=1}^{K}
+\sigma^2_{\text{aleat},k}(x).
+\end{equation}
+
+This average represents the expected data-related uncertainty across the ensemble predictions \cite{kendall2017uncertainties}.
+
+\subsection{Epistemic Uncertainty}
+Epistemic uncertainty, 
+in contrast, 
+arises from the model's limited knowledge of the underlying data distribution. 
+It is particularly relevant when training data are scarce, 
+unevenly distributed, 
+or when the model encounters inputs that differ substantially from those observed during training.
+
+Unlike aleatoric uncertainty, 
+epistemic uncertainty is potentially reducible by providing additional informative training data.
+
+One approach to quantifying this uncertainty is to use a Bayesian Neural Network (BNN), 
+which represents uncertainty over the network parameters, or a Deep Ensemble, 
+which consists of K independently trained neural networks. 
+Each network provides an estimate of the prediction for the same input x.
+
+The ensemble mean prediction $\bar{y}(x)$ is defined as:
+\begin{equation}
+\bar{y}(x) = \frac{1}{K}
+\sum_{k=1}^{K}
+\hat{y}_k(x).
+\end{equation}
+
+Epistemic uncertainty is then estimated from the variance of the predictions across the ensemble:
+\begin{equation}
+\frac{1}{K}
+\sum_{k=1}^{K}
+\left(
+\hat{y}_k(x)-\bar{y}(x)
+\right)^2.
+\end{equation}
+
+A high variance indicates that the models disagree about the predicted output, 
+suggesting limited confidence in the model's knowledge for that particular input. 
+Conversely, a low variance indicates that the different models produce similar predictions.
+
+\subsection{Total Predictive Uncertainty}
+Both sources of uncertainty can be combined to obtain the total predictive variance. This decomposition follows from the *law of total variance*, which separates the expected variance within individual models from the variance between their predictions.
+
+For a Deep Ensemble, the first component corresponds to the average aleatoric variance predicted by the individual networks, while the second captures the disagreement between their predicted means. The total predictive variance is therefore expressed as:
+
+\begin{equation}
+\begin{aligned}
+\sigma^2_{\text{total}}(x)
+&=
+\underbrace{
+\frac{1}{K}\sum_{k=1}^{K}
+\sigma^2_{\text{aleat},k}(x)
+}_{\text{Aleatoric uncertainty}}
+\\[0.5em]
+&\quad+
+\underbrace{
+\frac{1}{K}\sum_{k=1}^{K}
+\left(
+\hat{y}_k(x)-\bar{y}(x)
+\right)^2
+}_{\text{Epistemic uncertainty}}.
+\end{aligned}
+\end{equation}
+
+This decomposition provides a more comprehensive assessment of predictive reliability. 
+A prediction may be uncertain because the input data are intrinsically ambiguous (high aleatoric uncertainty), 
+because the model lacks sufficient knowledge (high epistemic uncertainty), 
+or because of both factors.
+Separating these contributions is particularly useful in safety-critical applications, 
+such as medical imaging, where it helps distinguish inherently ambiguous observations 
+from predictions that may require additional training data or model refinement.
 
 \section{Methods for deep learning with multimodal data}
 
@@ -233,9 +353,9 @@ balancing domain specific precision with flexible multisource integration.
 \subsection{Comparative Analysis Summary}
 As we can see in the Table~\ref{tab:multimodal_strategies}
 \begin{itemize}
-  \item Static vs. Dynamic Placement: Traditional structural paradigms (Early, Intermediate, Late, and Hybrid) dictate where information flows and merges. Early and Late approaches represent polar opposites (maximum raw combination versus complete segregation), whereas Intermediate and Hybrid approaches successfully capture non-linear inter-modality dependencies while preserving domain-specific feature extractors (such as convolutional encoders for imaging).
-  \item Computational Routing: In contrast to fixed structural placements, the Mixture of Experts (\gls{moe_acronym}) paradigm introduces conditional computation. By deploying a gating router, \gls{moe_acronym} scales model capacity sub-linearly and optimizes resource allocation per sample.
-  \item Robustness to Incomplete Data: While Early Fusion struggles with missing parameters due to strict input dimension requirements, Late, Intermediate, and \gls{moe_acronym} strategies handle missing observations natively or via masking. In clinical settings where patient panels are frequently incomplete, Hybrid or \gls{moe_acronym} architectures combined with attention masking offer the most practical path forward.
+  \item \textbf{Static vs. Dynamic Placement:} Traditional structural paradigms (Early, Intermediate, Late, and Hybrid) dictate where information flows and merges. Early and Late approaches represent polar opposites (maximum raw combination versus complete segregation), whereas Intermediate and Hybrid approaches successfully capture non-linear inter-modality dependencies while preserving domain-specific feature extractors (such as convolutional encoders for imaging).
+  \item \textbf{Computational Routing:} In contrast to fixed structural placements, the Mixture of Experts (\gls{moe_acronym}) paradigm introduces conditional computation. By deploying a gating router, \gls{moe_acronym} scales model capacity sub-linearly and optimizes resource allocation per sample.
+  \item \textbf{Robustness to Incomplete Data:} While Early Fusion struggles with missing parameters due to strict input dimension requirements, Late, Intermediate, and \gls{moe_acronym} strategies handle missing observations natively or via masking. In clinical settings where patient panels are frequently incomplete, Hybrid or \gls{moe_acronym} architectures combined with attention masking offer the most practical path forward.
 \end{itemize}
 
 
